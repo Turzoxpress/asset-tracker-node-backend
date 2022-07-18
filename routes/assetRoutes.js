@@ -9,7 +9,7 @@ router.post(
   controllers.asset.post.addNewItem
 );
 
-router.get(
+router.post(
   "/get-items",
   utils.authenticateToken,
   controllers.asset.post.getAllItems
@@ -28,5 +28,11 @@ router.post(
 );
 
 router.get("/get-items-global", controllers.asset.post.getAllItemsGlobal);
+
+router.get(
+  "/get-item-count",
+  utils.authenticateToken,
+  controllers.asset.post.getTotalItemCount
+);
 
 module.exports = router;

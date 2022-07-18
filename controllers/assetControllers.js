@@ -53,9 +53,23 @@ module.exports = {
     getAllItems: async (req, res, next) => {
       const id = req.user._id;
       const status = req.body.status;
+
+      const options = {
+        // sort in descending (-1) order by rating
+        //sort : { rating: -1 },
+        // omit the first two documents
+        sort: { created_at: -1 },
+        // skip: limit * pageNo,
+        // limit: limit,
+      };
+
       assetModel
         // .find({ status: { $ne: "deleted" } })
-        .find({ owner_id: mongoose.Types.ObjectId(id), status: status })
+        .find(
+          { owner_id: mongoose.Types.ObjectId(id), status: status },
+          null,
+          options
+        )
         .then((result) => {
           return res.json({
             status: 200,
@@ -132,10 +146,20 @@ module.exports = {
     getAllItemsGlobal: async (req, res, next) => {
       // const id = req.user._id;
       //const status = req.body.status;
+
+      const options = {
+        // sort in descending (-1) order by rating
+        //sort : { rating: -1 },
+        // omit the first two documents
+        sort: { created_at: -1 },
+        // skip: limit * pageNo,
+        // limit: limit,
+      };
+
       assetModel
         // .find({ status: { $ne: "deleted" } })
         //.find({ owner_id: mongoose.Types.ObjectId(id), status: status })
-        .find({ status: "borrowed" })
+        .find({ status: "borrowed" }, null, options)
         .then((result) => {
           return res.json({
             status: 200,
@@ -151,47 +175,44 @@ module.exports = {
         });
     },
 
-    // getTotalTaskCount: async (req, res, next) => {
-    //   toDoModel
-    //     .find()
-    //     .then((result) => {
-    //       //---------"created", "working", "completed", "deleted"
-    //       let created = 0;
-    //       let working = 0;
-    //       let completed = 0;
-    //       let deleted = 0;
-    //       for (let i = 0; i < result.length; i++) {
-    //         if (result[i].status === "created") {
-    //           created += 1;
-    //         } else if (result[i].status === "working") {
-    //           working += 1;
-    //         } else if (result[i].status === "completed") {
-    //           completed += 1;
-    //         } else if (result[i].status === "deleted") {
-    //           deleted += 1;
-    //         }
-    //       }
+    getTotalItemCount: async (req, res, next) => {
+      const owner_id = req.user._id;
+      assetModel
+        .find({ owner_id: mongoose.Types.ObjectId(owner_id) })
+        .then((result) => {
+          //---------"created", "working", "completed", "deleted"
+          let borrowed = 0;
+          let returned = 0;
+          let deleted = 0;
+          for (let i = 0; i < result.length; i++) {
+            if (result[i].status === "borrowed") {
+              borrowed += 1;
+            } else if (result[i].status === "returned") {
+              returned += 1;
+            } else if (result[i].status === "deleted") {
+              deleted += 1;
+            }
+          }
 
-    //       let total = created + working + completed + deleted;
+          let total = borrowed + returned + deleted;
 
-    //       return res.json({
-    //         status: 200,
-    //         data: {
-    //           total: total,
-    //           created: created,
-    //           working: working,
-    //           completed: completed,
-    //           deleted: deleted,
-    //         },
-    //       });
-    //     })
-    //     .catch((err) => {
-    //       return res.json({
-    //         status: 500,
-    //         message: "Error" + err,
-    //       });
-    //     });
-    // },
+          return res.json({
+            status: 200,
+            data: {
+              total: total,
+              borrowed: borrowed,
+              returned: returned,
+              deleted: deleted,
+            },
+          });
+        })
+        .catch((err) => {
+          return res.json({
+            status: 500,
+            message: "Error" + err,
+          });
+        });
+    },
 
     // getAllTasks: async (req, res, next) => {
     //   toDoModel
